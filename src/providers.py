@@ -38,25 +38,25 @@ class MockOfflineProvider(BaseLLMProvider):
         prompt_lower = prompt.lower()
         
         # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+        if "đặt lịch" in prompt_lower or "bn123456" in prompt_lower and "sáng mai" in prompt_lower:
             return {
                 "type": "tool_call",
-                "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+                "tool_name": "book_health_check",
+                "arguments": {"patient_id": "BN123456", "datetime_str": "09:00 20/09/2026", "doctor_name": "PGS.TS Phạm Văn Tim"},
+                "thought": "Người dùng yêu cầu đặt lịch khám cho bệnh nhân BN123456. Tôi sẽ gọi tool book_health_check."
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+        elif "lịch làm việc" in prompt_lower or "bác sĩ chuyên khoa" in prompt_lower:
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "doctor_schedule_query",
+                "arguments": {"specialty": "Tim Mạch"},
+                "thought": "Người dùng muốn tra cứu lịch làm việc của bác sĩ chuyên khoa Tim Mạch. Tôi sẽ gọi tool doctor_schedule_query."
             }
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": f"Xin chào! Quy trình khám chữa bệnh tại Vinmec luôn đề cao sự an toàn và tiện lợi cho bệnh nhân. Nếu cần hỗ trợ thêm, vui lòng cho biết.",
+                "thought": "Câu hỏi chung về quy trình khám bệnh, trả lời trực tiếp không cần gọi Tool."
             }
 
 
@@ -139,14 +139,22 @@ class OpenAIProvider(BaseLLMProvider):
     """OpenAI Provider (Native Tool Calling với OpenAI SDK)"""
     def __init__(self, api_key: str = None, model: str = None):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.model_name = model or os.getenv("LLM_MODEL") or "gpt-4o-mini"
+        if self.api_key and self.api_key.startswith("gsk_"):
+            self.model_name = model or os.getenv("LLM_MODEL") or "openai/gpt-oss-120b"
+            self.base_url = "https://api.groq.com/openai/v1"
+        elif self.api_key and self.api_key.startswith("nvapi-"):
+            self.model_name = model or os.getenv("LLM_MODEL") or "nvidia/llama-3.1-nemotron-70b-instruct"
+            self.base_url = "https://integrate.api.nvidia.com/v1"
+        else:
+            self.model_name = model or os.getenv("LLM_MODEL") or "gpt-4o-mini"
+            self.base_url = None
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
         if not self.api_key or self.api_key == "your_openai_api_key_here":
             return "[OpenAI Error]: Chưa cấu hình OPENAI_API_KEY trong file .env! Đang sử dụng chế độ Mock."
         try:
             from openai import OpenAI
-            client = OpenAI(api_key=self.api_key)
+            client = OpenAI(api_key=self.api_key, base_url=self.base_url) if self.base_url else OpenAI(api_key=self.api_key)
             messages = []
             if system_prompt:
                 messages.append({"role": "system", "content": system_prompt})
@@ -163,7 +171,7 @@ class OpenAIProvider(BaseLLMProvider):
 
         try:
             from openai import OpenAI
-            client = OpenAI(api_key=self.api_key)
+            client = OpenAI(api_key=self.api_key, base_url=self.base_url) if self.base_url else OpenAI(api_key=self.api_key)
 
             tools = []
             for tool in tools_schema:

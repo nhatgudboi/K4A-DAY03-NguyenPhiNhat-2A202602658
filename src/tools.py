@@ -11,41 +11,45 @@ from typing import Dict, Any
 # ==============================================================================
 
 TOOLS_SCHEMA = [
-    # Tool 1: Đã được định nghĩa mẫu sẵn cho Học viên tham khảo
+    # Tool 1: Tra cứu lịch bác sĩ
     {
-        "name": "academic_query",
-        "description": "Tra cứu hồ sơ và thông tin học vụ của sinh viên VinUni bằng mã sinh viên.",
+        "name": "doctor_schedule_query",
+        "description": "Tra cứu lịch làm việc của bác sĩ theo chuyên khoa tại Vinmec.",
         "parameters": {
             "type": "object",
             "properties": {
-                "student_id": {
+                "specialty": {
                     "type": "string",
-                    "description": "Mã sinh viên cần tra cứu (ví dụ: 'SV2026001')"
+                    "description": "Tên chuyên khoa cần tra cứu (ví dụ: 'Tim Mạch', 'Tiêu Hóa')"
                 }
             },
-            "required": ["student_id"]
+            "required": ["specialty"]
         }
     },
     
     # --------------------------------------------------------------------------
-    # TODO 1.2: HỌC VIÊN HOÀN THIỆN TOOL SCHEMA CHO 'schedule_appointment'
-    # 🎯 YÊU CẦU THIẾT KẾ SCHEMA (JSON SCHEMA STANDARD):
-    # 1. Tool dùng để đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.
-    # 2. Thiết kế các tham số (properties) để LLM trích xuất:
-    #    - student_id (string): Mã sinh viên cần đặt lịch (ví dụ: 'SV2026001')
-    #    - datetime_str (string): Thời gian hẹn (ví dụ: '14:00 15/09/2026')
-    #    - advisor_name (string): Tên cố vấn học tập
-    # 3. Khai báo danh sách các trường bắt buộc (required).
+    # TODO 1.2: HOÀN THIỆN TOOL SCHEMA CHO 'book_health_check'
     # --------------------------------------------------------------------------
     {
-        "name": "schedule_appointment",
-        "description": "Đặt lịch hẹn tư vấn học vụ với Cố vấn học tập VinUni.",
+        "name": "book_health_check",
+        "description": "Đặt lịch khám bệnh tại Vinmec.",
         "parameters": {
             "type": "object",
             "properties": {
-                # TODO 1.2: Khai báo các thuộc tính tham số cho Tool tại đây...
+                "patient_id": {
+                    "type": "string",
+                    "description": "Mã bệnh nhân (ví dụ: 'BN123456')"
+                },
+                "datetime_str": {
+                    "type": "string",
+                    "description": "Thời gian hẹn khám (ví dụ: '09:00 20/09/2026')"
+                },
+                "doctor_name": {
+                    "type": "string",
+                    "description": "Tên bác sĩ chuyên khoa"
+                }
             },
-            "required": [] # TODO 1.2: Khai báo danh sách các trường bắt buộc tại đây...
+            "required": ["patient_id", "datetime_str", "doctor_name"]
         }
     }
 ]
@@ -54,58 +58,67 @@ TOOLS_SCHEMA = [
 # 2. MÔ PHỎNG DỮ LIỆU & HÀM THỰC THI TOOL (EXECUTION LAYER)
 # ==============================================================================
 
-MOCK_DATABASE = {
-    "SV2026001": {
-        "full_name": "Nguyễn Văn An",
-        "class": "AI-K4",
-        "gpa": 3.85,
-        "email": "an.nv@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "PGS.TS Nguyễn Văn A"
+MOCK_PATIENT_DB = {
+    "BN123456": {
+        "full_name": "Nguyễn Văn Bệnh",
+        "age": 45,
+        "history": "Huyết áp cao"
+    }
+}
+
+MOCK_DOCTOR_DB = {
+    "Tim Mạch": {
+        "doctor_name": "PGS.TS Phạm Văn Tim",
+        "available_slots": ["09:00", "14:00"],
+        "room": "Phòng 101"
     },
-    "SV2026002": {
-        "full_name": "Trần Thị Bình",
-        "class": "AI-K4",
-        "gpa": 3.60,
-        "email": "binh.tt@vinuni.edu.vn",
-        "status": "Đang học",
-        "advisor": "TS. Lê Thị B"
+    "Tiêu Hóa": {
+        "doctor_name": "TS.BS Lê Thị Ruột",
+        "available_slots": ["10:00", "15:00"],
+        "room": "Phòng 205"
     }
 }
 
 
-def execute_academic_query(student_id: str) -> str:
-    """Thực thi tra cứu học vụ theo mã sinh viên"""
-    student = MOCK_DATABASE.get(student_id.strip().upper())
-    if student:
+def execute_doctor_schedule_query(specialty: str) -> str:
+    """Thực thi tra cứu lịch bác sĩ theo chuyên khoa"""
+    doctor = MOCK_DOCTOR_DB.get(specialty)
+    if doctor:
         return json.dumps({
             "status": "SUCCESS",
-            "student_id": student_id,
-            "data": student
+            "specialty": specialty,
+            "data": doctor
         }, ensure_ascii=False)
     else:
         return json.dumps({
             "status": "NOT_FOUND",
-            "message": f"Không tìm thấy dữ liệu sinh viên có mã '{student_id}'"
+            "message": f"Không tìm thấy bác sĩ cho chuyên khoa '{specialty}'"
         }, ensure_ascii=False)
 
 
-def execute_schedule_appointment(student_id: str, datetime_str: str, advisor_name: str = "PGS.TS Nguyễn Văn A") -> str:
-    """Thực thi đặt lịch hẹn tư vấn học vụ"""
+def execute_book_health_check(patient_id: str, datetime_str: str, doctor_name: str) -> str:
+    """Thực thi đặt lịch khám bệnh"""
+    # Mô phỏng kiểm tra bệnh nhân
+    if patient_id not in MOCK_PATIENT_DB:
+        return json.dumps({
+            "status": "NOT_FOUND",
+            "message": f"Không tìm thấy hồ sơ bệnh nhân có mã '{patient_id}'. Vui lòng kiểm tra lại."
+        }, ensure_ascii=False)
+
     return json.dumps({
         "status": "SUCCESS",
-        "booking_id": f"BK-{student_id}-99",
-        "student_id": student_id,
+        "booking_id": f"BK-{patient_id}-99",
+        "patient_id": patient_id,
         "datetime": datetime_str,
-        "advisor": advisor_name,
-        "message": f"Đặt lịch thành công cho sinh viên {student_id} với {advisor_name} vào lúc {datetime_str}."
+        "doctor": doctor_name,
+        "message": f"Đặt lịch khám thành công cho bệnh nhân {patient_id} với bác sĩ {doctor_name} vào lúc {datetime_str}."
     }, ensure_ascii=False)
 
 
 # Router gọi tool thực tế
 TOOL_ROUTER = {
-    "academic_query": execute_academic_query,
-    "schedule_appointment": execute_schedule_appointment
+    "doctor_schedule_query": execute_doctor_schedule_query,
+    "book_health_check": execute_book_health_check
 }
 
 def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
@@ -116,3 +129,9 @@ def dispatch_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
         except Exception as e:
             return json.dumps({"status": "EXECUTION_ERROR", "error": str(e)}, ensure_ascii=False)
     return json.dumps({"status": "UNKNOWN_TOOL", "error": f"Tool '{tool_name}' không tồn tại!"}, ensure_ascii=False)
+
+if __name__ == "__main__":
+    print(f"✅ [TOOLS CHECK]: Đã đăng ký thành công {len(TOOLS_SCHEMA)} Native Tools trong TOOLS_SCHEMA!")
+    print("🧪 Kết quả gọi thử doctor_schedule_query:")
+    test_result = dispatch_tool_call("doctor_schedule_query", {"specialty": "Tim Mạch"})
+    print(test_result)

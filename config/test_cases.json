@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, quy trình khám chữa bệnh tại Vinmec như thế nào?",
+    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu lịch làm việc của bác sĩ chuyên khoa Tim Mạch.",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'doctor_schedule_query' với chuyên khoa Tim Mạch.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Tôi muốn đặt lịch khám bệnh với bác sĩ chuyên khoa Tim Mạch vào 9h sáng mai cho bệnh nhân BN123456.",
+    "expected_behavior": "Agent tự động phát sinh Tool Call 'book_health_check' với đúng thời gian và mã bệnh nhân.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Hãy kiểm tra xem bác sĩ chuyên khoa Tiêu Hóa nào có lịch trống vào sáng mai, sau đó đặt lịch khám với bác sĩ đó cho bệnh nhân BN123456 giúp tôi.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu lịch làm việc của bác sĩ chuyên khoa trước, sau đó tiến hành đặt lịch khám.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Hãy đặt lịch khám với chuyên khoa Da Liễu vào ngày mai cho bệnh nhân BN999999.",
+    "expected_behavior": "Agent nhận kết quả bệnh nhân NOT_FOUND từ Tool và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
+    "complexity": "Medium"
+  }
+]

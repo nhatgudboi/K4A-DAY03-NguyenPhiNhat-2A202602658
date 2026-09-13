@@ -1,8 +1,8 @@
 # 📊 BÁO CÁO THU HOẠCH NGHIỆM THU BÀI LAB 3 (BƯỚC 3 — SUBMISSION ARTIFACT)
 
-> **Họ và Tên Học viên:** [Điền Họ và Tên]  
-> **Mã Sinh Viên / Mã Học viên:** [Điền MSSV]  
-> **Chủ đề Lựa chọn:** [Điền tên chủ đề đã chọn từ docs/DANH_SACH_DE_TAI.md hoặc Đề tài Mở]  
+> **Họ và Tên Học viên:** Nguyễn Phi Nhật  
+> **Mã Sinh Viên / Mã Học viên:** 2A202602658  
+> **Chủ đề Lựa chọn:** Gợi ý 4.3: Trợ lý Tư vấn Sức khỏe Vinmec: Tra cứu lịch làm việc bác sĩ chuyên khoa và đặt lịch khám bệnh.
 
 ---
 
@@ -10,11 +10,11 @@
 
 | Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | / 5 | Bài toán có yêu cầu chia nhỏ nhiều bước suy luận nối tiếp nhau không? |
-| **2. Tool Interaction** | / 5 | Hệ thống có cần kết nối với MCP Server / Cơ sở dữ liệu bên ngoài không? |
-| **3. Dynamic Decision** | / 5 | Bước tiếp theo có phụ thuộc vào kết quả quan sát bước trước không? |
-| **4. Long Horizon Goal** | / 5 | Hệ thống có phải giữ mục tiêu xuyên suốt qua nhiều lượt xử lý không? |
-| **TỔNG ĐIỂM AGENTIC FIT** | **/ 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
+| **1. Multi-step Reasoning** | 5 / 5 | Bài toán yêu cầu suy luận đa bước rõ ràng: Tra cứu lịch làm việc của bác sĩ chuyên khoa phù hợp trước, sau đó mới đặt lịch khám. |
+| **2. Tool Interaction** | 5 / 5 | Agent cần kết nối với MCP Server để gọi các tool tìm bác sĩ (doctor_schedule_query) và đặt lịch (book_health_check). |
+| **3. Dynamic Decision** | 4 / 5 | Agent phải ra quyết định dựa trên lịch rảnh của bác sĩ để đề xuất giờ phù hợp hoặc thông báo không có lịch. |
+| **4. Long Horizon Goal** | 4 / 5 | Quá trình từ tra cứu đến đặt lịch phải duy trì thông tin bệnh nhân và chuyên khoa bác sĩ. |
+| **TỔNG ĐIỂM AGENTIC FIT** | **18 / 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
 
 ---
 
@@ -28,20 +28,25 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 [
   {
     "step": 1,
+    "query": "Hãy tra cứu lịch làm việc của bác sĩ chuyên khoa Tim Mạch.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "doctor_schedule_query",
     "arguments": {
-      "student_id": "SV2026001"
+      "specialty": "Tim Mạch"
     },
     "observation": {
       "status": "SUCCESS",
-      "student_id": "SV2026001",
+      "specialty": "Tim Mạch",
       "data": {
-        "full_name": "Nguyễn Văn An",
-        "gpa": 3.85
+        "doctor_name": "PGS.TS Phạm Văn Tim",
+        "available_slots": [
+          "09:00",
+          "14:00"
+        ],
+        "room": "Phòng 101"
       }
     },
-    "latency_ms": 120.5
+    "latency_ms": 0.0
   }
 ]
 ```
@@ -50,10 +55,10 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 
 ## 3. TỔNG KẾT KẾT QUẢ NGHIỆM THU & NỘP BÀI
 
-- [ ] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Gemini/OpenAI).
-- **Tổng số Test Cases đã chạy thành công:** ___ / 5 test cases.
-- **Số lượt gọi Tool qua MCP Server chính xác:** ___ lượt.
-- **Kết quả đẩy Repo nộp bài:** [ ] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
+- [x] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Gemini/OpenAI).
+- **Tổng số Test Cases đã chạy thành công:** 5 / 5 test cases.
+- **Số lượt gọi Tool qua MCP Server chính xác:** 4 lượt.
+- **Kết quả đẩy Repo nộp bài:** [x] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
 
 ---
 
